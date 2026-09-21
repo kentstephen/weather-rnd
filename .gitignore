@@ -1,0 +1,6 @@
+.claude/memory/
+.venv/
+shots/
+__pycache__/
+__marimo__/
+.env
