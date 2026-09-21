@@ -19,7 +19,8 @@ A [marimo](https://marimo.io) notebook. Two maps of the lower 48 on H3 res 6 hex
 Press play and both run together. Drag or zoom either map and the other follows.
 Hover a cell on either map and it is ringed on both; click it and its two lines over
 the week are drawn under the maps. Double click a slider to put it back where it
-started. The opening window is 29 June to 5 July 2026, the week of July 4, when the
+started. "Hide panel" (or H) folds the panel under the maps away; clicking a cell
+brings it back with that cell's lines. The opening window is 29 June to 5 July 2026, the week of July 4, when the
 eastern heat dome peaked.
 
 Both formulas are written out in the notebook's first cell. In short:

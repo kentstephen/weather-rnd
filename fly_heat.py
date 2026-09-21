@@ -58,6 +58,14 @@ try:
         for sel in (".hp-cname", ".hp-cval-index", ".hp-cval-load"):
             print(sel, "=", txt(pg, sel))
         pg.locator(".hp").screenshot(path=str(SHOTS / "hp-03-pick.png"))
+        # hide the panel, then a click on a cell must bring it back
+        pg.locator(".hp-clear").click(); time.sleep(0.5)
+        pg.locator(".hp-toggle").click(); time.sleep(1)
+        print("panel hidden:", not pg.locator(".hp-strip").is_visible())
+        pg.locator(".hp").screenshot(path=str(SHOTS / "hp-03b-hidden.png"))
+        pg.mouse.click(x + 30, y + 20); time.sleep(2)
+        print("panel back after a click:", pg.locator(".hp-strip").is_visible(), "|", txt(pg, ".hp-cname"))
+        pg.locator(".hp").screenshot(path=str(SHOTS / "hp-03c-back.png"))
         # camera sync: wheel-zoom the RIGHT pane, read both maps' zoom off the canvases
         rb = pg.locator(".hp-pane-load").bounding_box()
         pg.mouse.move(rb["x"] + rb["width"] * 0.5, rb["y"] + rb["height"] * 0.45)

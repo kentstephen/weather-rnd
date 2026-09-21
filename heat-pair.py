@@ -371,7 +371,10 @@ def _(anywidget, traitlets):
           .hp .hp-head { padding: .45rem .7rem .5rem; background: #12161b; }
           .hp .hp-name { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; }
           .hp .hp-ttl { font-weight: 600; font-size: 14px; }
-          .hp .hp-mean { color: var(--dim); }
+          .hp .hp-mean { color: var(--dim); margin-left: auto; }
+          .hp .hp-toggle { background: none; border: 0; color: var(--dim); cursor: pointer; font: inherit; padding: 0 0 0 .4rem; }
+          .hp .hp-toggle:hover { color: var(--ink); }
+          .hp.hp-collapsed .hp-strip { display: none; }  /* "hp-collapsed", never "hidden": marimo's Tailwind owns .hidden */
           .hp .hp-legend { display: flex; align-items: center; gap: .45rem; margin-top: .3rem; color: var(--dim); }
           .hp .hp-grad { height: .55rem; flex: 1; border: 1px solid rgba(255,255,255,.12); }
           .hp .hp-maps { grid-template-rows: minmax(0, 1fr); width: 100%; background: #0b0d10; }
@@ -434,7 +437,7 @@ def _(anywidget, traitlets):
           el.appendChild(mlCss);
           const root = document.createElement("div"); root.className = "hp";
           const head = (f, name, tip) => `<div class="hp-head" title="${tip}">
-              <div class="hp-name"><span class="hp-ttl">${name}</span><span class="hp-mean hp-num hp-mean-${f}"></span></div>
+              <div class="hp-name"><span class="hp-ttl">${name}</span><span class="hp-mean hp-num hp-mean-${f}"></span>${f === "load" ? '<button class="hp-toggle" title="hide or show the panel under the maps (H); a click on a cell brings it back">hide panel</button>' : ""}</div>
               <div class="hp-legend"><span class="hp-num hp-lo-${f}"></span><div class="hp-grad hp-grad-${f}"></div><span class="hp-num hp-hi-${f}"></span></div>
             </div>`;
           root.innerHTML = `<style>${CSS}</style>
@@ -756,10 +759,19 @@ def _(anywidget, traitlets):
           };
           checkWindow();
 
+          // THE PANEL UNDER THE MAPS folds away; a picked cell brings it back with its lines.
+          const toggleBtn = q(".hp-toggle");
+          function setCollapsed(c) {
+            root.classList.toggle("hp-collapsed", c);
+            toggleBtn.textContent = c ? "show panel" : "hide panel";
+            if (!c) requestAnimationFrame(() => FIELDS.forEach(drawChart));  // the canvases had no width while folded
+          }
+          toggleBtn.onclick = () => { setCollapsed(!root.classList.contains("hp-collapsed")); root.focus({preventScroll: true}); };
           function select(i) {
             if (!(i >= 0 && i < N)) return;
             selected = i;
             root.classList.add("hp-picked");
+            setCollapsed(false);
             const c = cidx && cidx[i] !== 65535 ? names[cidx[i]] : null;
             cname.textContent = c ? `cell in ${c}` : `cell ${hexes[i]}`;
             update();
@@ -802,6 +814,7 @@ def _(anywidget, traitlets):
             else if (ev.key === "ArrowLeft") { ev.preventDefault(); step(-1); }
             else if (ev.key === "ArrowRight") { ev.preventDefault(); step(1); }
             else if (ev.key === "f" || ev.key === "F") { q(".hp-full").click(); }
+            else if (ev.key === "h" || ev.key === "H") { toggleBtn.click(); }
           });
 
           const rulerText = () => `${N.toLocaleString()} cells, ${F} hourly frames`;
@@ -1753,7 +1766,8 @@ def _(PIVOT, SPAN, cell_hour, cells, np):
 def _(mo):
     mo.md(r"""
     **Using the maps.** Space plays, arrows step, drag the slider to scrub, `F` or ⛶
-    goes fullscreen. Drag or zoom either map and the other follows. Hover rings the
+    goes fullscreen. `H` or "hide panel" (top right) folds the panel under the maps away;
+    clicking a cell brings it back with that cell's lines. Drag or zoom either map and the other follows. Hover rings the
     cell on both maps; click a cell for its two lines over the window (the dashed line
     on the left chart is the threshold), click it again or empty ground to clear; click
     a chart to jump to that hour. The sliders under the right map are the accumulator.
