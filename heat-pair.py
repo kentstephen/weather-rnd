@@ -231,11 +231,28 @@ def _():
     MEM_POOL_GB = 3 if (RES <= 6 and not READ_RAIN and not READ_WIND) else None
 
     # ------------------------------------------------------------------ the land mask
-    # Overture's PMTiles build of the pinned release, same object, box, zoom and
-    # CONUS filter as the counties film; the counties are the mask (a cell is CONUS
-    # land if its centre falls in a county) and the click readout's name.
-    OVERTURE_RELEASE = "2026-07-22.0"
+    # Overture's PMTiles build, same object, box, zoom and CONUS filter as the counties
+    # film; the counties are the mask (a cell is CONUS land if its centre falls in a
+    # county) and the click readout's name. THE RELEASE IS NOT PINNED: the extras bucket
+    # keeps only the newest release's tiles (a pin to 2026-07-22.0 began to 404 once
+    # 2026-08-19.0 landed), so the newest `tiles/<release>/` prefix in the bucket is the
+    # release. Overture's STAC catalog (https://stac.overturemaps.org/catalog.json,
+    # key "latest") says the same thing, but the listing is what is actually there.
+    # A string here ("2026-08-19.0") pins it; OVERTURE_FALLBACK is used if the listing fails.
+    OVERTURE_RELEASE = None
+    OVERTURE_FALLBACK = "2026-08-19.0"
     PM_BUCKET = "overturemaps-extras-us-west-2"
+    if OVERTURE_RELEASE is None:
+        try:
+            import obstore as _obstore
+            from obstore.store import S3Store as _S3Store
+
+            _found = _obstore.list_with_delimiter(
+                _S3Store(PM_BUCKET, region="us-west-2", skip_signature=True), "tiles/"
+            )["common_prefixes"]
+            OVERTURE_RELEASE = max(p.rstrip("/").split("/")[-1] for p in _found)
+        except Exception:  # noqa: BLE001
+            OVERTURE_RELEASE = OVERTURE_FALLBACK
     PM_PATH = f"tiles/{OVERTURE_RELEASE}/divisions.pmtiles"
     COUNTY_Z = 8
     BOX = (-124.8, 24.4, -66.9, 49.5)
@@ -641,8 +658,9 @@ def _(anywidget, traitlets):
               pickable: false,
               beforeId: LABELS_SLOT,
             });
-            if (hover >= 0 && hover !== selected) out.push(ring("hover", hover, [255, 255, 255, 230], 1.5));
-            if (selected >= 0) out.push(ring("picked", selected, [230, 193, 74, 255], 2));
+            // each ring sits on a dark casing: gold alone is lost on the index ramp's warm end
+            if (hover >= 0 && hover !== selected) { out.push(ring("hover-case", hover, [11, 13, 16, 255], 3.5)); out.push(ring("hover", hover, [255, 255, 255, 240], 1.5)); }
+            if (selected >= 0) { out.push(ring("picked-case", selected, [11, 13, 16, 255], 5)); out.push(ring("picked", selected, [255, 214, 92, 255], 2.5)); }
             return out;
           }
 

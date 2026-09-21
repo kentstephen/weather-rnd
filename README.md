@@ -5,7 +5,9 @@
 ## `heat-pair.py`: heat index and sustained heat, side by side
 
 A [marimo](https://marimo.io) notebook. Two maps of the lower 48 on H3 res 6 hexagons
-(210,724 cells), one camera, one clock.
+(about 210,000 cells), one camera, one clock.
+
+![Heat index on the left, sustained heat on the right, 3 July 2026 21Z](img/heat-pair.png)
 
 - **Left: the heat index this hour.** NWS heat index from each cell's hourly mean 2 m
   temperature and relative humidity.
@@ -42,7 +44,8 @@ sliders are the parameters.
 lead hours of every 00/06/12/18Z run inside it. The store is queried with
 [xarray-sql](https://github.com/alxmrs/xarray-sql); each pixel is labelled with its H3
 cell inside the DataFusion `GROUP BY` (h3ronpy). Counties for the land mask come from
-Overture Maps' PMTiles. Nothing is precomputed: the first open of a week reads 28 runs
+Overture Maps' PMTiles (the newest release in Overture's tiles bucket, resolved when the
+notebook starts). Nothing is precomputed: the first open of a week reads 28 runs
 x 5 variables over the wire (about six minutes from a home link, much less near the
 bucket in us-west-2), and `join/hrrr_mirror.py` keeps the bytes on disk so the next
 open of the same week does not.
